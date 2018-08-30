@@ -10,7 +10,7 @@ import giturlparse
 
 @contextlib.contextmanager
 def temp_git_clone(repository, branch):
-    repository_https = giturlparse.parse(repository).url2https
+    repository_https = repository
     with tempfile.TemporaryDirectory() as repo_dir:
         subprocess.check_call([
             'git',
