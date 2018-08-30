@@ -120,8 +120,8 @@ def get_new_component(
     new_component.project = project
     new_component.name = get_component_name(project, addon_name)
     new_component.slug = get_component_slug(project, addon_name)
-    new_component.repo = parsed_repository_uri.url2ssh
-    new_component.push = parsed_repository_uri.url2ssh
+    new_component.repo = repository #parsed_repository_uri.url2ssh
+    new_component.push = repository #parsed_repository_uri.url2ssh
     new_component.branch = branch
     new_component.filemask = po_file_mask
     new_component.new_base = pot_filepath
