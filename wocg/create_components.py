@@ -7,6 +7,8 @@ import re
 
 import click
 
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "weblate.settings")
+
 import django
 django.setup()  # noqa: E402
 
