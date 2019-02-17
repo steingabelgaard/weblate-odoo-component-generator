@@ -9,11 +9,11 @@ import click
 import giturlparse
 
 import django
-django.setup()
+django.setup()  # noqa: E402
 
-from weblate.addons.models import Addon
 from weblate.trans.models import Project, Component
 
+from .tools.component import copy_installed_addons
 from .tools.git_utils import temp_git_clone
 from .tools.helper import get_component_slug, get_component_name
 from .tools.logger import get_logger
@@ -42,7 +42,7 @@ def project_exists(project_name):
 
 def create_project(
         repository, branch, tmpl_component_slug,
-        addons_subdirectory=None):
+        addons_subdirectory=None, use_ssh=False):
     project_name = get_project_name(repository, branch)
 
     logger.info("Project name is %s", project_name)
@@ -51,7 +51,7 @@ def create_project(
         logger.info("Project %s already exists.", project_name)
         return
 
-    with temp_git_clone(repository, branch) as repo_dir:
+    with temp_git_clone(repository, branch, use_ssh=use_ssh) as repo_dir:
         addons = get_translatable_addons(
             repo_dir, addons_subdirectory=addons_subdirectory)
 
@@ -112,7 +112,7 @@ def get_new_component(
         po_file_mask = os.path.join(addons_subdirectory, po_file_mask)
         pot_filepath = os.path.join(addons_subdirectory, pot_filepath)
     tmpl_component = Component.objects.get(slug=tmpl_component_slug)
-    addons_to_install = Addon.objects.filter(component=tmpl_component)
+    tmpl_component_pk = tmpl_component.pk
     parsed_repository_uri = giturlparse.parse(repository)
 
     new_component = tmpl_component
@@ -128,11 +128,7 @@ def get_new_component(
     new_component.file_format = 'po'
     new_component.locked = False
     new_component.save(force_insert=True)
-
-    for addon_to_install in addons_to_install:
-        addon_to_install.pk = None
-        addon_to_install.component = new_component
-        addon_to_install.save()
+    copy_installed_addons(tmpl_component_pk, new_component)
     return new_component
 
 
@@ -154,9 +150,14 @@ def get_new_component(
     help="Addons subdirectory, in case addons are not "
          "at the root of the project (eg odoo/addons)."
 )
+@click.option(
+    '--use-ssh',
+    is_flag=True,
+    help="Use SSH instead HTTP to clone the repository."
+)
 def main(
         repository, branch, tmpl_component_slug,
-        addons_subdirectory=None):
+        addons_subdirectory=None, use_ssh=False):
     """
     This program initializes a weblate project based on a git repository.
 
@@ -169,4 +170,5 @@ def main(
     create_project(
         repository, branch, tmpl_component_slug,
         addons_subdirectory=addons_subdirectory,
+        use_ssh=use_ssh,
     )
