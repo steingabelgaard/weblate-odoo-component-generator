@@ -8,8 +8,6 @@ import re
 import click
 import giturlparse
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "weblate.settings")
-
 import django
 django.setup()  # noqa: E402
 
