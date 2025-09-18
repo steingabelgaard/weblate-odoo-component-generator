@@ -15,6 +15,7 @@ def temp_git_clone(repository, branch, use_ssh=False):
         subprocess.check_call([
             'git',
             'clone',
+            '-q',
             repository_https,
             '-b', branch,
             '--depth', '1',
